@@ -9,12 +9,13 @@ def main():
         return
 
     # Create a background subtractor
-    back_sub = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=100, detectShadows=True)
+    back_sub = cv2.createBackgroundSubtractorMOG2(history=400, varThreshold=100, detectShadows=False)
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
+        # Apply background subtraction
         fg_mask = back_sub.apply(frame)
 
         # Morphological operations to reduce noise. Don't need it tho.
@@ -22,13 +23,16 @@ def main():
         fg_mask = cv2.erode(fg_mask, kernel, iterations=1)
         fg_mask = cv2.dilate(fg_mask, kernel, iterations=2)
 
-        # _, fg_mask = cv2.threshold(fg_mask, 200, 255, cv2.THRESH_BINARY)
+        # Threshold the mask to remove noise
+        _, fg_mask = cv2.threshold(fg_mask, 200, 255, cv2.THRESH_BINARY)
 
+        # Find contours
         contours, _ = cv2.findContours(fg_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         for cnt in contours:
             area = cv2.contourArea(cnt)
-            if area > 250:
+            # Filter by size (remove small false positives)
+            if area > 400:
                 x, y, w, h = cv2.boundingRect(cnt)
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
