@@ -25,9 +25,9 @@ def main():
         fg_mask = back_sub.apply(frame)
 
         # 5. (Optional) Morphological operations to reduce noise. Don't need it tho.
-        # kernel = np.ones((5, 5), np.uint8)
-        # fg_mask = cv2.erode(fg_mask, kernel, iterations=1)
-        # fg_mask = cv2.dilate(fg_mask, kernel, iterations=2)
+        kernel = np.ones((5, 5), np.uint8)
+        fg_mask = cv2.erode(fg_mask, kernel, iterations=1)
+        fg_mask = cv2.dilate(fg_mask, kernel, iterations=2)
 
         # 6. Threshold the mask to get a clear binary image
         #    This step can help remove intermediate gray pixels from shadow detection
