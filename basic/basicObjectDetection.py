@@ -12,8 +12,11 @@ def main():
     back_sub = cv2.createBackgroundSubtractorMOG2(history=400, varThreshold=100, detectShadows=False)
 
     while True:
+        pixel_area_filter_for_contour = 10
+
         ret, frame = cap.read()
         if not ret:
+            print("Error: Could not read frame.")
             break
         # Apply background subtraction
         fg_mask = back_sub.apply(frame)
@@ -24,16 +27,16 @@ def main():
         fg_mask = cv2.dilate(fg_mask, kernel, iterations=2)
 
         # Threshold the mask to remove noise
-        _, fg_mask = cv2.threshold(fg_mask, 200, 255, cv2.THRESH_BINARY)
+        _, fg_mask = cv2.threshold(fg_mask, 50, 255, cv2.THRESH_BINARY)
 
         # Find contours
         contours, _ = cv2.findContours(fg_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        for cnt in contours:
-            area = cv2.contourArea(cnt)
+        for contour in contours:
+            area = cv2.contourArea(contour)
             # Filter by size (remove small false positives)
-            if area > 400:
-                x, y, w, h = cv2.boundingRect(cnt)
+            if area > pixel_area_filter_for_contour:
+                x, y, w, h = cv2.boundingRect(contour)
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
         cv2.imshow('Original Frame', frame)
