@@ -1,6 +1,6 @@
 import argparse
 
-from calibration.camera_calibration import calibrate, save_coefficients
+from oldcalibration.calibMedium.camera_calibration import calibrate, save_coefficients
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Camera calibration')

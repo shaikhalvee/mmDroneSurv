@@ -22,7 +22,7 @@ objp = objp * size_of_chessboard_squares_mm
 obj_points = []  # 3d point in real world space
 img_points = []  # 2d points in image plane.
 
-images = glob.glob('./images/*.png')
+images = glob.glob('images/*.png')
 
 for image in images:
 
