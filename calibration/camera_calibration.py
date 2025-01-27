@@ -6,16 +6,17 @@ import glob
 def main():
     # --- User-defined parameters ---
     # Number of internal corners in the chessboard
-    # For a 9x6 board, you have 9 corners along width, 6 along height
+    # For a 9x6 board, you have 9 internal corners along width, 6 along height
+    # Which means, 10x7 boxes (we don't include the boxes at the border)
     chessboard_size = (9, 6)
 
     # Size of each square in your checkerboard (in some consistent unit, e.g. millimeters).
     # If you only care about fx, fy, cx, cy (no real-world scaling), you can keep it at 1.0.
-    square_size = 1.0
+    square_size = 0.26 # in meters
 
     # Path to your calibration images
     # e.g., "calibration_images/*.jpg" if you have multiple .jpg files in that folder
-    images_path_pattern = "calibration_images/*.jpg"
+    images_path_pattern = "calibration_images/*.png"
 
     # --- Prepare 3D points of the corners in real-world space ---
     # For a board of (9x6), we have 9 corners along one axis, 6 along the other.
@@ -25,8 +26,8 @@ def main():
     objp = objp * square_size
 
     # Arrays to store 3D points and 2D points for all images
-    objpoints = []  # 3D points in real-world
-    imgpoints = []  # 2D points in image plane
+    obj_points = []  # 3D points in real-world
+    img_points = []  # 2D points in image plane
 
     # Get all image file paths
     images = glob.glob(images_path_pattern)
@@ -39,8 +40,10 @@ def main():
         if img is None:
             print(f"Failed to load {file_name}")
             continue
+        print("reading image", file_name)
 
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray = cv2.equalizeHist(gray)
 
         # Find the chessboard corners
         ret, corners = cv2.findChessboardCorners(gray, chessboard_size, None)
@@ -49,19 +52,19 @@ def main():
             # Refine corner locations to sub-pixel accuracy
             corners_refined = cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
 
-            objpoints.append(objp)
-            imgpoints.append(corners_refined)
+            obj_points.append(objp)
+            img_points.append(corners_refined)
 
             # Optionally, draw and display corners for verification
             cv2.drawChessboardCorners(img, chessboard_size, corners_refined, ret)
-            cv2.imshow('Corners', img)
-            cv2.waitKey(500)
+            cv2.imshow(file_name, img)
+            cv2.waitKey(1000)
         else:
             print(f"Chessboard not found in {file_name}")
 
     cv2.destroyAllWindows()
 
-    if len(objpoints) < 1:
+    if len(obj_points) < 1:
         print("No chessboard corners found. Calibration aborted.")
         return
 
@@ -71,7 +74,7 @@ def main():
     # dist_coeffs: distortion coefficients
     # rvecs, tvecs: rotation and translation vectors for each image
     ret, camera_matrix, dist_coeffs, rvecs, tvecs = cv2.calibrateCamera(
-        objpoints, imgpoints, gray.shape[::-1], None, None
+        obj_points, img_points, gray.shape[::-1], None, None
     )
 
     print("Calibration successful!")
@@ -92,6 +95,7 @@ def main():
     print(f"fy = {fy}")
     print(f"cx = {cx}")
     print(f"cy = {cy}")
+    print("shapes", gray.shape[::-1])
 
 
 if __name__ == "__main__":
