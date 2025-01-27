@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 def main():
     # Initialize video capture
@@ -43,6 +44,14 @@ def main():
             if cv2.contourArea(contour) > 500:  # Filter out small objects
                 x, y, w, h = cv2.boundingRect(contour)
                 cv2.rectangle(frame_resized, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+                # Center of the bounding box
+                b_x = x + w // 2
+                b_y = y + h // 2
+
+                # Draw a small circle at the center
+                cv2.circle(frame, (int(b_x), int(b_y)), 5, (0, 0, 255), -1)
+
 
         # Display the results
         cv2.imshow("Detected Objects", frame_resized)
